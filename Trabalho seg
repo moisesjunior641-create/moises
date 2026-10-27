@@ -1,0 +1,35 @@
+import os
+import sys
+
+if os.geteuid() != 0:
+    print("Execute este script com sudo.")
+    sys.exit(1)
+
+
+def executar(comando):
+    print(f"Executando: {comando}")
+    resultado = os.system(comando)
+
+    if resultado != 0:
+        print("Erro ao executar o comando.")
+        sys.exit(1)
+
+
+executar("dnf upgrade --refresh -y")
+executar("dnf install -y httpd git")
+executar("systemctl enable --now httpd")
+
+repositorio = "https://github.com/denilsonbonatti/mundo-invertido.git"
+temporario = "/tmp/mundo-invertido-deploy"
+destino = "/var/www/html"
+
+executar(f"rm -rf {temporario}")
+executar(f"git clone {repositorio} {temporario}")
+executar(f"mkdir -p {destino}")
+executar(f"cp -a {temporario}/. {destino}/")
+executar(f"rm -rf {temporario}")
+executar(f"chmod -R a+rX {destino}")
+executar(f"restorecon -Rv {destino}")
+
+print("\nAutomacao concluida!")
+print("Teste o servidor acessando http://localhost")
